@@ -32,3 +32,25 @@ def look_id():
         data = [i for row in data for i in row]
         print(data)
     return data
+
+def look_person(id_user=0):
+    with engine.begin()as conn:
+        lists_bd = conn.execute(text("SELECT * FROM user"))
+        flag = False
+        for i in lists_bd:
+            if id_user == i[0]:
+                result = i
+                break
+        else:
+            result = 'У вас нет аккаунта'
+        return result
+
+def delet_person(id_user=0):
+    flag = look_person(id_user=id_user)
+    if type(flag) == str:
+        return flag
+    else:
+        with engine.begin()as conn:
+            conn.execute(text(f"DELETE FROM user WHERE id = {id_user}"))
+            conn.commit
+            return 'Аккаунт успешно удален.'
