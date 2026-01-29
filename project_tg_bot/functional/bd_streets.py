@@ -1,4 +1,5 @@
 import json 
+from my_bd import *
 
 def pazor_street_result(streets, street):
     def start(result):
@@ -32,14 +33,17 @@ def proverka_streets(street):
         result = json.load(fl)
     return street in result, result.get(street)
 
-def estimation_streets_ball(streets, ball):
+def estimation_streets_ball(streets, id_user, ball):
     with open('project_tg_bot/data_streets.json', encoding='utf-8') as fl:
         result = json.load(fl)
     if result.get(streets) != None:
         result[streets].append(ball)
         with open('project_tg_bot/data_streets.json', 'w' , encoding='utf-8') as fl:
             json.dump(result, fl, ensure_ascii=False)
-        return 'Оценка поставленна.'
+        flag = 'Оценка поставленна.'
+        if flag != new_ratings(id_user=id_user):
+            flag = 'Оценка не поставленна.'
+        return flag
     else: 
         return 'Оценка не поставленна.'
     

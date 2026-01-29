@@ -58,17 +58,21 @@ def start(message):
     global flag
     flag = False
     print(flag)
+#--------------------------------------------------------------------------------------
 
-
-def eco_all_total(message):
+def eco_all_total(message, statys):
     global result
     total_id = look_id()
     id = message.chat.id
+    print(1, statys)
+    if statys not in ('volunteer', 'simple'):
+        statys = '-'
+        print(2)
     if id not in total_id:
         id = message.chat.id
-        name, password = result
-        print({name: type(name), password: type(password)})
-        new_person(id_user=id, name_user=name, password_user=password)
+        name = result[0]
+        print({name: type(name), statys:type(statys)})
+        new_person(id_user=id, name_user=name, count_Ratings_user=0, statys_user=statys)
         bot.send_message(message.chat.id, 'Поздравляю, регистрация прошла успешно.')
     else:
         bot.send_message(message.chat.id, 'У вас уже есть аккаунт')
@@ -81,12 +85,41 @@ def eco_all_total(message):
 @bot.message_handler(func=lambda x: start_registration)
 def eco_all(message):
     global result
-    result.append(message.text)
-    print(result)
-    if len(result) == 1:
-        bot.send_message(message.chat.id, 'Теперь введите ваш пароль.')
-    elif len(result) == 2:
-        eco_all_total(message=message)
+    print(message.text)
+    if message.text[0] != '/' and len(message.text) < 20 and message.text.strip() != '':
+        print(1)
+        result.append(message.text)
+        if len(result) == 1:
+            keyboard = types.InlineKeyboardMarkup()
+            button1 = types.InlineKeyboardButton(text='Волонтер', callback_data='volunteer')
+            button2 = types.InlineKeyboardButton(text='Обычный пользователь', callback_data='simple')
+            keyboard.add(button1, button2)
+            bot.send_message(message.chat.id, 'Теперь выберите ваш статус',reply_markup=keyboard)
+        elif len(result) == 2:
+            eco_all_total(message=message)
+    else:
+        if len(result) == 0:
+            bot.send_message(message.chat.id, 'Ваш никнейм не уместен придумайте другой.')
+        # else:
+        #     bot.send_message(message.chat.id, 'Ваш пароль не уместен придумайте другой.')
+        print(result)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == 'volunteer') 
+def save_btn(call):
+    message = call.message
+    eco_all_total(message=message, statys='volunteer')
+
+@bot.callback_query_handler(func=lambda call: call.data == 'simple') 
+def save_btn(call):
+    message = call.message
+    eco_all_total(message=message, statys='simple')
+
+# def start_opr_statys(message):
+#     bot.send_message(message.chat.id, 'Теперь введите ваш пароль.')
+
+
+
 
 
 @bot.message_handler(commands=['m', 'menu'])
@@ -115,7 +148,8 @@ def replacement_akk(message):
         bot.send_message(message.chat.id, look)
     else:
         bot.send_message(message.chat.id, f'''Ваш никнейм ——> {look[1]}
-Ваш пароль ——> {look[-1]}''')
+Ваше колличество оценок ——> {look[2]}
+Ваш статус ——> {look[-1]}''')
 
 
 
@@ -177,32 +211,32 @@ def estimation_streets_2(message):
 @bot.callback_query_handler(func=lambda call: call.data == 'button0') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, ball=0))
+    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=0))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button1') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, ball=1))
+    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=1))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button2') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, ball=2))
+    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=2))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button3') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, ball=3))
+    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=3))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button4') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, ball=4))
+    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=4))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button5') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, ball=5))
+    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=5))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button6') 
 def save_btn(call):
