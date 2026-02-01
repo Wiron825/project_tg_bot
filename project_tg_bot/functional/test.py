@@ -6,6 +6,7 @@ from telebot import types
 from my_bd import *
 from random import randint
 from bd_streets import *
+from bd_rating_street import *
 import json
 
 flag = True
@@ -44,8 +45,13 @@ def cancel_registraition(message):
 @bot.message_handler(commands=['registraition', 'r'])
 def start(message):
     global start_registration
-    start_registration = True
-    bot.send_message(message.chat.id, 'Пожалуйста, введите ваше имя пользователя.')
+    if message.chat.id in look_id():
+        bot.send_message(message.chat.id, 'У вас уже есть аккаунт')
+        result = []
+        start_registration = False
+    else:
+        start_registration = True
+        bot.send_message(message.chat.id, 'Пожалуйста, введите ваше имя пользователя.')
 
 
 @bot.message_handler(commands=['d'])
@@ -68,11 +74,11 @@ def eco_all_total(message, statys):
     if statys not in ('volunteer', 'simple'):
         statys = '-'
         print(2)
-    if id not in total_id:
-        id = message.chat.id
+    if id not in look_id():
         name = result[0]
         print({name: type(name), statys:type(statys)})
-        new_person(id_user=id, name_user=name, count_Ratings_user=0, statys_user=statys)
+        print(id)
+        new_person(id_user=message.chat.id, name_user=name, count_Ratings_user=0, statys_user=statys)
         bot.send_message(message.chat.id, 'Поздравляю, регистрация прошла успешно.')
     else:
         bot.send_message(message.chat.id, 'У вас уже есть аккаунт')
@@ -86,7 +92,9 @@ def eco_all_total(message, statys):
 def eco_all(message):
     global result
     print(message.text)
-    if message.text[0] != '/' and len(message.text) < 20 and message.text.strip() != '':
+    if message.text.strip() in look_name():
+        bot.send_message(message.chat.id, 'Ваш никнейм уже занят придумайте другой.')
+    elif message.text[0] != '/' and len(message.text) < 20 and message.text.strip() != '':
         print(1)
         result.append(message.text)
         if len(result) == 1:
@@ -132,7 +140,8 @@ def rename(message):
 /l ,  /look  — Посмотреть свой профиль
 /del ,  /delete  — Удалить свой аккаунт
 /p,  /pazor — Вывод самых загрязненных улиц
-/e,  /estimation — Оценить улицу ''')
+/e,  /estimation — Оценить улицу 
+/b,  /best — Вывод самых активных пользователей''')
 
 
 @bot.message_handler(commands=['delete', 'del'])
@@ -147,25 +156,21 @@ def replacement_akk(message):
     if type(look) == str:
         bot.send_message(message.chat.id, look)
     else:
+        dicts = {'simple': 'Обычный пользователь', 'volunteer': 'Волонтер'}
+        statys = dicts.get(look[3])
+        if statys == None:
+            statys = '-'
         bot.send_message(message.chat.id, f'''Ваш никнейм ——> {look[1]}
-Ваше колличество оценок ——> {look[2]}
-Ваш статус ——> {look[-1]}''')
+Ваше колличество оценок за все время ——> {look[2]}
+Ваше колличество оценок за сегодня ——> {look[4]}
+Ваш статус ——> {statys}''')
 
 
 
 @bot.message_handler(commands=['pazor', 'p'])
 def pazor_street(message):
-    with open('project_tg_bot/data_streets.json', encoding='utf-8') as fl:
-        result = json.load(fl)
-    min_ball = 6
-    streets = {}
-    for i in result:
-        if round(sum(result[i]) / len(result[i]), 2) < min_ball:
-            row = pazor_street_result(streets=streets, street={i: result[i]})
-            streets, min_ball = row[0], row[1]
-    streets_1 = sorted(streets, key=lambda x: streets[x])
-    print(streets_1)
-    streets = [f'{i} - {streets[i]}' for i in streets_1]
+    print(1)
+    streets = pazor_street_bd()
     print(streets)
     bot.send_message(message.chat.id, f'''Вот топ 5 самых загрязнённых улиц на данный момент: 
 1. {streets[0]}
@@ -192,6 +197,7 @@ def estimation_streets_2(message):
         bot.send_message(message.chat.id, f'Вот средний балл {message.text} на данный момент: {round(sum(row[1]) / len(row[1]), 2)}')
         global streets
         streets = message.text
+        print(streets, 101010110101010101)
         keyboard = types.InlineKeyboardMarkup()
         button1 = types.InlineKeyboardButton(text='0', callback_data='button0')
         button2 = types.InlineKeyboardButton(text='1', callback_data='button1')
@@ -211,44 +217,66 @@ def estimation_streets_2(message):
 @bot.callback_query_handler(func=lambda call: call.data == 'button0') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=0))
+    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=0))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button1') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=1))
+    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=1))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button2') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=2))
+    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=2))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button3') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=3))
+    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=3))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button4') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=4))
+    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=4))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button5') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball(streets=streets, id_user=message.chat.id, ball=5))
+    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=5))
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button6') 
 def save_btn(call):
     message = call.message
     bot.send_message(message.chat.id, 'Оценка не поставленна.')
 
+@bot.message_handler(commands=['best', 'b'])
+def dest_users(message):
+    users_id = look_id()
+    print(1)
+    users_rating = [look_rating_today(id_user=ids) for ids in users_id]
+    print(2)
+    users_rating = [{look_person(id_user=i)[1]: look_person(id_user=i)[2]} for i in look_id()]
+    print(users_rating)
+    best_rating = []
+    n = 5 if len(users_rating) >= 5 else len(users_rating)
+    for _ in range(n):
+        best_rating.append(max(users_rating))
+        print(users_rating.index(max(users_rating)))
+        x = users_rating.pop(users_rating.index(max(users_rating)))
+    s = ''
+    for i in range(len(best_rating)):
+        for j in best_rating[i]:
+            s += f'{i + 1}. {j} - {best_rating[i][j]}\n'
+    bot.send_message(message.chat.id, f'''Вот самые актывные пользователи:
+Имя пользователя - Количество оценок:
+{s}''')
+
 @bot.message_handler(func=lambda x: True)
 def eco_all(message):
     bot.send_message(message.chat.id, message.text)
 
-
 while flag:
+    print(1)
     try:
         bot.polling(none_stop=True)
     except Exception as _e:

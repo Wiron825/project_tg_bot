@@ -41,10 +41,18 @@ def estimation_streets_ball(streets, id_user, ball):
         with open('project_tg_bot/data_streets.json', 'w' , encoding='utf-8') as fl:
             json.dump(result, fl, ensure_ascii=False)
         flag = 'Оценка поставленна.'
-        if flag != new_ratings(id_user=id_user):
-            flag = 'Оценка не поставленна.'
+        print(1)
+        flag1 = look_rating_today(id_user=id_user)
+        print(2)
+        for i in flag1:
+            flag1 = i
+        print(flag1, type(flag1))
+        if flag1 >= 5:
+            flag = 'Превыщен лимит оценок за сегодня, попробуйте завтра'
+        else:
+            print(flag)
+            if flag != new_ratings(id_user=id_user):
+                flag = 'Оценка не поставленна.'
         return flag
     else: 
         return 'Оценка не поставленна.'
-    
-
