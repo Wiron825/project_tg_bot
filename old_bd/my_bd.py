@@ -4,7 +4,7 @@ from datetime import date
 
 Base = declarative_base()
 engine = create_engine(
-    "sqlite:///project_tg_bot/mybd.sqlite3",
+    "sqlite:///project_tg_bot/bd/mybd.sqlite3",
     echo=True
 )
 
@@ -53,15 +53,15 @@ def look_name():
         print(data)
     return data
 
-def chek_data(id_user):
-    if id_user not in look_id():
-        return 'Аккаунт не найден'
-    else:
-        with Session(engine) as session:
-            user = session.get(User, id_user)
-            data_l = user.data
-            session.commit()
-    return date.today() == data_l
+# def chek_data(id_user):
+#     if id_user not in look_id():
+#         return 'Аккаунт не найден'
+#     else:
+#         with Session(engine) as session:
+#             user = session.get(User, id_user)
+#             data_l = user.data
+#             session.commit()
+#     return date.today() == data_l
 
 
 def look_statys():
@@ -85,16 +85,11 @@ def new_ratings(id_user):
         with Session(engine) as session:
             user = session.get(User, id_user)
             user.count_Ratings += 1
-            print(user.data, date.today())
-            print(user.data == date.today(), 1000000000000000000000)
-            print(date.today().strftime("%Y-%m-%d"), 111111111111111111111111111)
             if user.data != date.today().strftime("%Y-%m-%d"):
                 user.data = date.today().strftime("%Y-%m-%d")
                 user.ratings_today = 1
-                print(919191)
             else:
                 user.ratings_today += 1
-                print(8, 8, 8)
             session.commit()
         print('Оценка поставленна.')
         return 'Оценка поставленна.'
@@ -116,7 +111,6 @@ def look_person(id_user=0):
             result = 'У вас нет аккаунта'
         return result
 
-
 def look_rating_today(id_user):
     if id_user not in look_id():
         return 'Аккаунт не найден'
@@ -132,3 +126,15 @@ def delet_person(id_user=0):
             conn.execute(text(f"DELETE FROM user WHERE id = {id_user}"))
             conn.commit
             return 'Аккаунт успешно удален.'
+
+def day_ended(data=date.today().strftime("%Y-%m-%d")):
+    with engine.begin()as conn:
+        count_active_peple = conn.execute(text(f"SELECT data FROM user"))
+        count_active_peple = [i for row in count_active_peple for i in row]
+        count_active_peple = count_active_peple.count(data)
+        print(count_active_peple)
+        count_peple = conn.execute(text(f"SELECT COUNT() FROM user"))
+        count_peple = [i for row in count_peple for i in row][0]
+        print(count_peple)
+    return count_peple, count_active_peple
+print(day_ended())

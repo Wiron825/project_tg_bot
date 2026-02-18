@@ -3,10 +3,14 @@ import telebot
 from dotenv import load_dotenv
 from enum import Enum, auto
 from telebot import types
-from my_bd import *
+# from my_bd import *
 from random import randint
-from bd_streets import *
-from bd_rating_street import *
+# from bd_streets import *
+# from bd_rating_street import *
+from start_bd import *
+from user_bd import *
+from street_bd import *
+from changes_bd import *
 import json
 
 flag = True
@@ -25,6 +29,7 @@ start_registration = False
 start_estimation_streets = False
 result = []
 streets = ''
+start_info = False
 
 @bot.message_handler(commands=['start', 's'])
 def start(message):
@@ -45,7 +50,7 @@ def cancel_registraition(message):
 @bot.message_handler(commands=['registraition', 'r'])
 def start(message):
     global start_registration
-    if message.chat.id in look_id():
+    if message.chat.id in look_tg_id(): #----------------------------------------------
         bot.send_message(message.chat.id, 'У вас уже есть аккаунт')
         result = []
         start_registration = False
@@ -54,9 +59,9 @@ def start(message):
         bot.send_message(message.chat.id, 'Пожалуйста, введите ваше имя пользователя.')
 
 
-@bot.message_handler(commands=['d'])
-def start(message):
-    delete()
+# @bot.message_handler(commands=['d'])
+# def start(message):
+#     delete_users() #------------------------------------
 
 
 @bot.message_handler(commands=['stop'])
@@ -68,17 +73,17 @@ def start(message):
 
 def eco_all_total(message, statys):
     global result
-    total_id = look_id()
+    total_id = look_tg_id() #-----------------------------------
     id = message.chat.id
     print(1, statys)
     if statys not in ('volunteer', 'simple'):
         statys = '-'
         print(2)
-    if id not in look_id():
+    if id not in look_tg_id():  #------------------------------
         name = result[0]
         print({name: type(name), statys:type(statys)})
         print(id)
-        new_person(id_user=message.chat.id, name_user=name, count_Ratings_user=0, statys_user=statys)
+        new_user(id_user=message.chat.id, name=name, count_ratings=0, status=statys) #---------------------------------
         bot.send_message(message.chat.id, 'Поздравляю, регистрация прошла успешно.')
     else:
         bot.send_message(message.chat.id, 'У вас уже есть аккаунт')
@@ -141,18 +146,20 @@ def rename(message):
 /del ,  /delete  — Удалить свой аккаунт
 /p,  /pazor — Вывод самых загрязненных улиц
 /e,  /estimation — Оценить улицу 
-/b,  /best — Вывод самых активных пользователей''')
+/b,  /best — Вывод самых активных пользователей
+/d,  /dop — Дополнительные возможности''')
 
 
 @bot.message_handler(commands=['delete', 'del'])
 def replacement_akk(message):
-    flag = delet_person(id_user=message.chat.id)
+    flag = delete_person(id_user=message.chat.id) #----------------------------------------
     bot.send_message(message.chat.id, flag)    
 
 
 @bot.message_handler(commands=['look', 'l'])
 def replacement_akk(message):
-    look = look_person(id_user=message.chat.id)
+    look = look_person(tg_id=message.chat.id)
+    print(look, 43674356743565463756347)
     if type(look) == str:
         bot.send_message(message.chat.id, look)
     else:
@@ -168,9 +175,8 @@ def replacement_akk(message):
 
 
 @bot.message_handler(commands=['pazor', 'p'])
-def pazor_street(message):
-    print(1)
-    streets = pazor_street_bd()
+def pazor_street_1(message):
+    streets = pazor_street() #---------------------------------------------------------------
     print(streets)
     bot.send_message(message.chat.id, f'''Вот топ 5 самых загрязнённых улиц на данный момент: 
 1. {streets[0]}
@@ -182,7 +188,7 @@ def pazor_street(message):
 
 @bot.message_handler(commands=['estimation', 'e'])
 def estimation_streets(message):
-    if type(look_person(id_user=message.chat.id)) == str:
+    if type(look_person(tg_id=message.chat.id)) == str:
         bot.send_message(message.chat.id, 'Для того чтобы оценивать загрязнённость улиц, создайте аккаунт')
     else:
         global start_estimation_streets
@@ -192,9 +198,10 @@ def estimation_streets(message):
 
 @bot.message_handler(func=lambda x: start_estimation_streets)
 def estimation_streets_2(message):
-    row = proverka_streets(street=message.text)
+    row = proverka_street(street=message.text) #---------------------------------------------------------
+    print(row)
     if row[0]:
-        bot.send_message(message.chat.id, f'Вот средний балл {message.text} на данный момент: {round(sum(row[1]) / len(row[1]), 2)}')
+        bot.send_message(message.chat.id, f'Вот средний балл {message.text} на данный момент: {row[1]}')
         global streets
         streets = message.text
         print(streets, 101010110101010101)
@@ -251,11 +258,11 @@ def save_btn(call):
 
 @bot.message_handler(commands=['best', 'b'])
 def dest_users(message):
-    users_id = look_id()
+    users_id = look_tg_id() #-------------------------------------
     print(1)
     users_rating = [look_rating_today(id_user=ids) for ids in users_id]
     print(2)
-    users_rating = [{look_person(id_user=i)[1]: look_person(id_user=i)[2]} for i in look_id()]
+    users_rating = [{look_person(tg_id=i)[1]: look_person(tg_id=i)[2]} for i in look_tg_id()] #---------------------------------
     print(users_rating)
     best_rating = []
     n = 5 if len(users_rating) >= 5 else len(users_rating)
@@ -271,12 +278,57 @@ def dest_users(message):
 Имя пользователя - Количество оценок:
 {s}''')
 
+
+def proverka_status(message):
+    status = look_status_person(tg_id=message.chat.id)
+    if status == 'Ошибка статуса':
+        bot.send_message(message.chat.id, 'Извините, выскочила не большая ошибка, но мы постараемся ее исправить как можно быстрее.')
+    elif status == 'Обычный пользователь':
+        bot.send_message(message.chat.id, 'Извините, вы обычный полозователь и вам не доступны особые возможности.')
+    elif status == 'У вас нет аккаунта':
+        bot.send_message(message.chat.id, status)
+    else:
+        return True
+
+
+@bot.message_handler(commands=['dop', 'd'])
+def dop_options(message):
+    if proverka_status(message=message):
+        bot.send_message(message.chat.id, '''Вот доп возможности:
+/i,  /info — вывод улиц результата сканирования улицы
+/pass''')
+
+
+@bot.message_handler(commands=['i', 'info'])
+def worse_streets(message):
+    if proverka_status(message=message):
+        bot.send_message(message.chat.id, 'Введите название улицы, которую хотите просмотреть:')
+        global start_info
+        start_info = True
+
+@bot.message_handler(func=lambda x: start_info)
+def start_info_change(message):
+    if proverka_status(message=message):
+        if message.text in name_street():
+            result = info_change(id_street=id_street(street=message.text))
+            #count_change_month, count_change_today, mean_ball_month, mean_ball_today, rating_mounth, new_rating
+            bot.send_message(message.chat.id, f'''Вот результат сканирования оценок:       
+Количество оценок за этот месяц — {result[0]}
+Количество оценок за сегодня — {result[1]}
+Средний балл оценок за этот месяц — {result[2]}
+Средний балл оценок за сегодня — {result[3]}
+Ретинг улицы месяц назад — {result[4]}
+Ретинг улицы на данный момент — {result[5]}''')
+        else:
+            bot.send_message(message.chat.id, 'Улица не найдена.')
+    global start_info
+    start_info = False
+
 @bot.message_handler(func=lambda x: True)
 def eco_all(message):
     bot.send_message(message.chat.id, message.text)
 
 while flag:
-    print(1)
     try:
         bot.polling(none_stop=True)
     except Exception as _e:

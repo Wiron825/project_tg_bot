@@ -2,16 +2,18 @@ from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, 
 from sqlalchemy.orm import declarative_base, Session
 from datetime import datetime, date, time, timedelta
 from my_bd import *
+from bd_street_rating import *
 import json
 
 Base = declarative_base()
 engine = create_engine(
-    "sqlite:///project_tg_bot/steets_bd.sqlite3",
+    "sqlite:///project_tg_bot/bd/mybd.sqlite3",
     echo=True
 )
 
 class User(Base):
     __tablename__ = "street"
+    # id = Column(Integer)
     name_street = Column(String, primary_key=True)
     time_street = Column(String)
     old_rating = Column(Float)
@@ -80,21 +82,63 @@ def estimation_streets_ball_bd(streets, id_user, ball):
             if flag != new_ratings(id_user=id_user):
                 flag = 'Оценка не поставленна.'
         if flag == 'Оценка поставленна.':
-            print(100000001111111111111111100)
             with Session(engine) as session:
                 user = session.get(User, streets)
                 rating = [user.mean_rating for i in range(user.count_rating)]
                 rating.append(ball)
-                print(rating)
                 user.count_rating += 1
                 user.count_rating_today += 1
                 user.mean_rating = round(sum(rating) / len(rating), 2)
-                print(user.mean_rating)
                 session.commit()
         return flag
     else:
         return 'Оценка не поставленна.'
 
+def proverka_street(street):
+    if street in name_street():
+        with Session(engine) as session:
+            user = session.get(User, street)
+            mean_ball = user.mean_rating
+        return True, mean_ball
+    else:
+        return False
+    
+# def new_day():
+#     with Session(engine) as session:
+#         streets = session.query(User)
+#         for user in streets:
+#             time_day = user.time_street
+#             break
+#         if old_day() == time_day:
+#             print(1010101010101)
+#             with engine.begin() as conn:
+#                 data_best = conn.execute(text('''SELECT *
+#                                         FROM street
+#                                         WHERE (mean_rating - old_rating) > 0'''))
+
+#                 data_best = [i for i in data_best]
+#                 data_name = [i[0] for i in data_best]
+#                 print(data_best)
+#                 data = conn.execute(text('''SELECT *
+#                                         FROM street
+#                                         WHERE (mean_rating - old_rating) < 0'''))
+
+#                 print(data, 11111111)
+#                 data = [i for i in data]
+#                 data_name += [i[0] for i in data]
+#                 print(data_name)
+#                 for street in data_name:
+#                     with Session(engine) as session:
+#                         user = session.get(User, street)
+#                         user.old_rating = user.mean_rating
+#                         user.count_rating_today = 0
+#                         user.old_count_rating = user.count_rating
+
+#                 dicts = {i[0]: round(100 - round(i[3] / (i[2] / 100), 2), 2) for i in data}
+#                 print(data_name)
+#                 print(dicts, 111111111)
+#         else:
+#             return 'День еще не прошел'
 
 
 # # datetime - дата и время
