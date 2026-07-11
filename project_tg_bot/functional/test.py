@@ -30,6 +30,7 @@ start_estimation_streets = False
 result = []
 streets = ''
 start_info = False
+start_coments = False
 
 @bot.message_handler(commands=['start', 's'])
 def start(message):
@@ -224,37 +225,83 @@ def estimation_streets_2(message):
 @bot.callback_query_handler(func=lambda call: call.data == 'button0') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=0))
+    text = estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=0)
+    bot.send_message(message.chat.id, text)
+    if text == 'Оценка поставленна.':
+        bot.send_message(message.chat.id, 'Хототе оставить коментарий (если да, то напишите его если нет, то напишите нет)')
+        global start_coments
+        start_coments = True
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button1') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=1))
+    text = estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=1)
+    bot.send_message(message.chat.id, text)
+    # bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=1))
+    if text == 'Оценка поставленна.':
+        bot.send_message(message.chat.id, 'Хототе оставить коментарий (если да, то напишите его если нет, то напишите нет)')
+        global start_coments
+        start_coments = True
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button2') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=2))
+    text = estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=2)
+    bot.send_message(message.chat.id, text)
+    # bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=2))
+    if text == 'Оценка поставленна.':
+        bot.send_message(message.chat.id, 'Хототе оставить коментарий (если да, то напишите его если нет, то напишите нет)')
+        global start_coments
+        start_coments = True
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button3') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=3))
+    text = estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=3)
+    bot.send_message(message.chat.id, text)
+    # bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=3))
+    if text == 'Оценка поставленна.':
+        bot.send_message(message.chat.id, 'Хототе оставить коментарий (если да, то напишите его если нет, то напишите нет)')
+        global start_coments
+        start_coments = True
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button4') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=4))
+    text = estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=4)
+    bot.send_message(message.chat.id, text)
+    # bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=4))
+    if text == 'Оценка поставленна.':
+        bot.send_message(message.chat.id, 'Хототе оставить коментарий (если да, то напишите его если нет, то напишите нет)')
+        global start_coments
+        start_coments = True
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button5') 
 def save_btn(call):
     message = call.message
-    bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=5))
+    text = estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=5)
+    bot.send_message(message.chat.id, text)
+    # bot.send_message(message.chat.id, estimation_streets_ball_bd(streets=streets, id_user=message.chat.id, ball=5))
+    if text == 'Оценка поставленна.':
+        bot.send_message(message.chat.id, 'Хототе оставить коментарий (если да, то напишите его если нет, то напишите нет)')
+        global start_coments
+        start_coments = True
 
 @bot.callback_query_handler(func=lambda call: call.data == 'button6') 
 def save_btn(call):
     message = call.message
     bot.send_message(message.chat.id, 'Оценка не поставленна.')
+
+@bot.message_handler(func=lambda x: start_coments)
+def start_com(message):
+    if message.text.lower() == 'нет':
+        bot.send_message(message.chat.id, 'Коментарий не отправлен')
+    else:
+        street = id_street(street=streets)
+        new_coment(street_id=street, coment=message.text)
+        bot.send_message(message.chat.id, 'Коментарий успешно добавлен, спасибо за обоснование своей оценки, нам это очень помагает')
+    global start_coments
+    start_coments = False
 
 @bot.message_handler(commands=['best', 'b'])
 def dest_users(message):
@@ -263,13 +310,23 @@ def dest_users(message):
     users_rating = [look_rating_today(id_user=ids) for ids in users_id]
     print(2)
     users_rating = [{look_person(tg_id=i)[1]: look_person(tg_id=i)[2]} for i in look_tg_id()] #---------------------------------
-    print(users_rating)
+    print(users_rating, 1111)
     best_rating = []
     n = 5 if len(users_rating) >= 5 else len(users_rating)
+    print(222, n)
     for _ in range(n):
-        best_rating.append(max(users_rating))
-        print(users_rating.index(max(users_rating)))
-        x = users_rating.pop(users_rating.index(max(users_rating)))
+        max_r = [-1, -1, {-1: -1}]
+        for j in users_rating:
+            for x in j:
+                print(j, x)
+                if j[x] > max_r[0]:
+                    max_r[0] = j[x]
+                    max_r[1] = users_rating.index(j)
+                    max_r[2] = j
+        print(max_r)
+        best_rating.append(max_r[2])
+        # print(users_rating.index(max(users_rating)))
+        x = users_rating.pop(max_r[1])
     s = ''
     for i in range(len(best_rating)):
         for j in best_rating[i]:
@@ -295,8 +352,7 @@ def proverka_status(message):
 def dop_options(message):
     if proverka_status(message=message):
         bot.send_message(message.chat.id, '''Вот доп возможности:
-/i,  /info — вывод улиц результата сканирования улицы
-/pass''')
+/i,  /info — вывод улиц результата сканирования улицы''')
 
 
 @bot.message_handler(commands=['i', 'info'])
@@ -333,7 +389,7 @@ while flag:
         bot.polling(none_stop=True)
     except Exception as _e:
         print(_e)
-    
+
 # while 1:
 #     bot.polling(none_stop=True)
 

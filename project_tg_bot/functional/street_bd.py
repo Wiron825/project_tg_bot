@@ -60,15 +60,16 @@ def estimation_streets_ball_bd(streets, id_user, ball):
     print(streets, streets in name_street())
     if streets in name_street():
         flag = 'Оценка поставленна.'
-        flag1 = look_rating_today(id_user=id_user)
-        print(flag1)
-        for i in flag1:
-            flag1 = i
-        if flag1 >= 5:
-            return 'Превыщен лимит оценок за сегодня, попробуйте завтра'
-        else:
-            if flag != new_ratings(id_user=id_user):
-                return 'Оценка не поставленна.'
+        # flag1 = look_rating_today(id_user=id_user)
+        # print(flag1)
+        # for i in flag1:
+        #     flag1 = i
+        # if flag1 >= 5:
+        #     return 'Превыщен лимит оценок за сегодня, попробуйте завтра'
+        # else:
+        #     if flag != new_ratings(id_user=id_user):
+        #         return 'Оценка не поставленна.'
+        flag = new_ratings(id_user=id_user)
         if flag == 'Оценка поставленна.':
             if id_street(street=streets) != None:
                 with Session(engine) as session:
@@ -89,7 +90,7 @@ def estimation_streets_ball_bd(streets, id_user, ball):
             else:
                 return 'Улица не найдена'
         else:
-            return 'Оценка не поставленна.'
+            return flag
 
 
 def proverka_street(street):

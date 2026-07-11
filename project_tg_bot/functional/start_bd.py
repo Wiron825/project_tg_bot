@@ -45,6 +45,12 @@ class Change(Base):
     value = Column(Integer)
     date = Column(DateTime, default=datetime.now)
 
+class Coment(Base):
+    __tablename__ = 'coments'
+    id = Column(Integer(), primary_key=True)
+    street_id = Column(ForeignKey("streets.id"))
+    coment = Column(String)
+
 Base.metadata.create_all(engine)
 
 
@@ -60,6 +66,10 @@ def delete_streets():
 def delete_changes():
     with engine.begin()as conn:
         conn.execute(text("DELETE FROM changes"))
+
+def delete_coment():
+    with engine.begin()as conn:
+        conn.execute(text("DELETE FROM coments"))
 
 
 
@@ -82,6 +92,11 @@ def new_change(user_tg_id: int = 0, street_id: int = 1, value:int = 5):
         session.add(new_change)
         session.commit()
 
+def new_coment(street_id: int, coment: str):
+    with Session(engine) as session:
+        new_coment = Coment(street_id=street_id, coment=coment)
+        session.add(new_coment)
+        session.commit()
 
 
 # delete_users()

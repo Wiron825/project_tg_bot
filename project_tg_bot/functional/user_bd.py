@@ -39,15 +39,20 @@ def new_ratings(id_user):
     else:
         with Session(engine) as session:
             user = session.get(User, id_user)
-            print(user.date)
-            if user.ratings_today >= 5:
-                return 'Превышен лимит оценок за сегодня.' 
-            user.count_ratings += 1
+            print(user.date, 1111, '-' * 30)
+            # if user.ratings_today >= 5:
+            #     return 'Превышен лимит оценок за сегодня.' 
+            # user.count_ratings += 1
             print(user.date.strftime("%Y-%m-%d"), date.today().strftime("%Y-%m-%d"))
             if user.date.strftime("%Y-%m-%d") != date.today().strftime("%Y-%m-%d"):
                 user.date = date.today()
                 user.ratings_today = 1
+                user.count_ratings += 1
             else:
+                if user.ratings_today >= 5:
+                    print(11111111111111111111)
+                    return 'Превышен лимит оценок за сегодня.' 
+                user.count_ratings += 1
                 user.ratings_today += 1
             session.commit()
         print('Оценка поставленна.')
@@ -61,6 +66,21 @@ def look_person(tg_id=0):
         if data == []:
             return 'У вас нет аккаунта'
         print(data[0])
+        with Session(engine) as session:
+            print('ashyshhssh'* 10)
+            user = session.get(User, tg_id)
+            print(user.date, 1111, '-' * 30)
+            # if user.ratings_today >= 5:
+            #     return 'Превышен лимит оценок за сегодня.' 
+            # user.count_ratings += 1
+            print(user.date.strftime("%Y-%m-%d"), date.today().strftime("%Y-%m-%d"))
+            if user.date.strftime("%Y-%m-%d") != date.today().strftime("%Y-%m-%d"):
+                user.date = date.today()
+                user.ratings_today = 0
+                data[0] = data[0][:4] + (0,) + data[0][5:]
+            
+            print(data[0])
+            session.commit()
         return data[0]
     
 
@@ -80,7 +100,6 @@ def delete_person(id_user=0):
             conn.execute(text(f"DELETE FROM users WHERE tg_id = {id_user}"))
             conn.commit
             return 'Аккаунт успешно удален.'
-
 
 def look_status_person(tg_id: int) -> str:
     if tg_id not in look_tg_id():
